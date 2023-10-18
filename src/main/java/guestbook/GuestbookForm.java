@@ -28,9 +28,9 @@ import jakarta.validation.constraints.NotBlank;
  * @see GuestbookController#addEntry(GuestbookForm, org.springframework.validation.Errors, org.springframework.ui.Model)
  */
 class GuestbookForm {
-
+	//nicht ausgefülltes Feld => Error in Form (irgendein Handler??)
 	private final @NotBlank String name;
-	private final @NotBlank String text;
+	private @NotBlank String text;
 
 	/**
 	 * Creates a new {@link GuestbookForm} with the given name and text. Spring Framework will use this constructor to
@@ -68,6 +68,10 @@ class GuestbookForm {
 	 */
 	public String getText() {
 		return text;
+	}
+
+	public void setText(String text){
+		this.text = text;
 	}
 
 	/**

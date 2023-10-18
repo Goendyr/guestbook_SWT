@@ -30,12 +30,14 @@ import org.springframework.util.Assert;
  * @author Oliver Drotbohm
  * @see https://en.wikipedia.org/wiki/Domain-driven_design#Building_blocks
  */
+//Daten die in die Datenbank kommen??
 @Entity
 class GuestbookEntry {
 
 	private @Id @GeneratedValue Long id;
-	private final String name, text;
+	private String name, text;
 	private final LocalDateTime date;
+	private boolean isEdited;
 
 	/**
 	 * Creates a new {@link GuestbookEntry} for the given name and text.
@@ -43,6 +45,7 @@ class GuestbookEntry {
 	 * @param name must not be {@literal null} or empty
 	 * @param text must not be {@literal null} or empty
 	 */
+	//MÜSSEN BEIM HINZUFÜGEN NEUER ATTRIBUTE ANGEPASST WERDEN!
 	public GuestbookEntry(String name, String text) {
 
 		Assert.hasText(name, "Name must not be null or empty!");
@@ -51,6 +54,18 @@ class GuestbookEntry {
 		this.name = name;
 		this.text = text;
 		this.date = LocalDateTime.now();
+		this.isEdited = false;
+	}
+
+	public GuestbookEntry(String name, String text, Long id){
+		Assert.hasText(name, "Name must not be null or empty!");
+		Assert.hasText(text, "Text must not be null or empty!");
+
+		this.name = name;
+		this.text = text;
+		this.date = LocalDateTime.now();
+		this.id = id;
+		this.isEdited = true;
 	}
 
 	@SuppressWarnings("unused")
@@ -58,6 +73,8 @@ class GuestbookEntry {
 		this.name = null;
 		this.text = null;
 		this.date = null;
+		this.isEdited = false;
+		this.id = null;
 	}
 
 	public String getName() {
@@ -74,5 +91,21 @@ class GuestbookEntry {
 
 	public String getText() {
 		return text;
+	}
+	public GuestbookEntry setText(String content){
+		this.text = content;
+		this.isEdited = true;
+		return this;
+	}
+
+	public GuestbookEntry setIsEdited(){
+		this.isEdited = true;
+		return this;
+	}
+
+
+	public boolean getIsEdited()
+	{
+		return isEdited;
 	}
 }

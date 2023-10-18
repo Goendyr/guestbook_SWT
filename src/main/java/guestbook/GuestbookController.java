@@ -17,21 +17,19 @@ package guestbook;
 
 import io.github.wimdeblauwe.hsbt.mvc.HtmxResponse;
 import io.github.wimdeblauwe.hsbt.mvc.HxRequest;
+import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 
 import java.util.Optional;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.util.Assert;
 import org.springframework.validation.Errors;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 /**
@@ -42,7 +40,7 @@ import org.springframework.web.server.ResponseStatusException;
  */
 @Controller
 class GuestbookController {
-
+	//Die Datenbank
 	private final GuestbookRepository guestbook;
 
 	/**
@@ -55,6 +53,7 @@ class GuestbookController {
 
 		Assert.notNull(guestbook, "Guestbook must not be null!");
 		this.guestbook = guestbook;
+
 	}
 
 	/**
@@ -63,6 +62,7 @@ class GuestbookController {
 	 *
 	 * @return a redirect string
 	 */
+	//irgendwas mit URL Handling
 	@GetMapping(path = "/")
 	String index() {
 		return "redirect:/guestbook";
@@ -76,12 +76,14 @@ class GuestbookController {
 	 * @param form the form to be added to the model
 	 * @return a view name
 	 */
+	//basic website Zugriff -> "@GetMapping" bedeutet, die Methode wird bei jedem http get-request auf /guestbook aufgerufen
 	@GetMapping(path = "/guestbook")
 	String guestBook(Model model, @ModelAttribute(binding = false) GuestbookForm form) {
-
+		//sets initial guestbook entries on startup
 		model.addAttribute("entries", guestbook.findAll());
 		model.addAttribute("form", form);
 
+		//guestbook.html
 		return "guestbook";
 	}
 
@@ -95,14 +97,39 @@ class GuestbookController {
 	 * @param model the model that's used to render the view
 	 * @return a redirect string
 	 */
+	//wird ausgeführt, wenn Eintrag abgeschickt wird
 	@PostMapping(path = "/guestbook")
-	String addEntry(@Valid @ModelAttribute("form") GuestbookForm form, Errors errors, Model model) {
+	String addEntry(@Valid @ModelAttribute("form") GuestbookForm form, Errors errors, Model model, HttpSession session) {
 
 		if (errors.hasErrors()) {
 			return guestBook(model, form);
 		}
+		if(session.getAttribute("editEntry") == null){
+			guestbook.save(form.toNewEntry());
+		}
+		else{
+			GuestbookEntry editedEntry = ((GuestbookEntry)session.getAttribute("editEntry")).setText(form.getText());
+			guestbook.save(editedEntry);
+			session.setAttribute("editEntry", null);
+		}
 
-		guestbook.save(form.toNewEntry());
+		return "redirect:/guestbook";
+	}
+
+
+	@PreAuthorize("hasRole('ADMIN')")
+	@PostMapping(path="/guestbook/edit/{entry}")
+	String editEntry(@PathVariable GuestbookEntry entry, @ModelAttribute("form") GuestbookForm form ,Model model, HttpSession session) throws IllegalAccessException {
+		if(session.getAttribute("editEntry") != null){
+			throw new IllegalAccessException("cant edit multiple entries at once!");
+		}
+		guestbook.delete(entry);
+		//guestbook.save(entry.setText("wtfffff"));
+		//entry.setText("text");
+		//guestbook.save(new GuestbookEntry(entry.getName(), entry.getText(), entry.getId()));
+		session.setAttribute("editEntry", entry.setIsEdited());
+
+
 
 		return "redirect:/guestbook";
 	}
@@ -116,8 +143,9 @@ class GuestbookController {
 	 * @param entry an {@link Optional} with the {@link GuestbookEntry} to delete
 	 * @return a redirect string
 	 */
+	//Funktionen nur ausführbar, wenn Admin
 	@PreAuthorize("hasRole('ADMIN')")
-	@DeleteMapping(path = "/guestbook/{entry}")
+	@DeleteMapping(path = "/guestbook/delete/{entry}")
 	String removeEntry(@PathVariable Optional<GuestbookEntry> entry) {
 
 		return entry.map(it -> {
@@ -179,3 +207,4 @@ class GuestbookController {
 		}).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
 	}
 }
+

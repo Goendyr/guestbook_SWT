@@ -7,6 +7,17 @@ div#entries, #form {
 	margin-bottom: 2em;
 }
 
+.admin-buttons{
+	display:flex;
+	flex-direction: row;
+	align-items: flex-start;
+}
+
+.edit-btn{
+	position: relative;
+	left: 80%;
+}
+
 .card-title {
 	margin-bottom: 0;
 }
