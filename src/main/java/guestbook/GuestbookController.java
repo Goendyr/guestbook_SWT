@@ -104,6 +104,7 @@ class GuestbookController {
 		if (errors.hasErrors()) {
 			return guestBook(model, form);
 		}
+		//checks if the is new or an edit
 		if(session.getAttribute("editEntry") == null){
 			guestbook.save(form.toNewEntry());
 		}
@@ -117,16 +118,19 @@ class GuestbookController {
 	}
 
 
+	//gets called on hitting the edit-button
 	@PreAuthorize("hasRole('ADMIN')")
 	@PostMapping(path="/guestbook/edit/{entry}")
 	String editEntry(@PathVariable GuestbookEntry entry, @ModelAttribute("form") GuestbookForm form ,Model model, HttpSession session) throws IllegalAccessException {
+
+		//checks if another entry is already being edited
 		if(session.getAttribute("editEntry") != null){
 			throw new IllegalAccessException("cant edit multiple entries at once!");
 		}
+
+		//deletes the entry and sets it as a session attribute
+		//as long as this attribute is non-null, the next written entry will have its name attribute and display "edited"
 		guestbook.delete(entry);
-		//guestbook.save(entry.setText("wtfffff"));
-		//entry.setText("text");
-		//guestbook.save(new GuestbookEntry(entry.getName(), entry.getText(), entry.getId()));
 		session.setAttribute("editEntry", entry.setIsEdited());
 
 

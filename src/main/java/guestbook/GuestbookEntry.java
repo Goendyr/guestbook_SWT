@@ -57,6 +57,7 @@ class GuestbookEntry {
 		this.isEdited = false;
 	}
 
+	//enabling an edited comment to have the same id as its original
 	public GuestbookEntry(String name, String text, Long id){
 		Assert.hasText(name, "Name must not be null or empty!");
 		Assert.hasText(text, "Text must not be null or empty!");
@@ -92,6 +93,7 @@ class GuestbookEntry {
 	public String getText() {
 		return text;
 	}
+	//not necessary and probably bad practice -> should be reworked
 	public GuestbookEntry setText(String content){
 		this.text = content;
 		this.isEdited = true;
